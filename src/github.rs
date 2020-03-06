@@ -25,9 +25,7 @@ pub struct Github {
 
 impl Github {
     pub async fn new() -> Result<Self> {
-        let client = Client::builder()
-            .proxy(reqwest::Proxy::all("http://localhost:7890")?)
-            .build()?;
+        let client = Client::builder().build()?;
         let user: User = client
             .get(Url::parse(&url::authenticated_user())?)
             .headers(headers())

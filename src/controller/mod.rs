@@ -36,6 +36,7 @@ impl Controller {
     }
 
     pub async fn run(self: Arc<Self>) -> Result<()> {
+        info!("Start polling issue comments");
         let mut last_date = None;
         loop {
             // Poll comments from github issue
@@ -170,7 +171,7 @@ fn render_readme_package_list(database: &Database) -> Result<String> {
 
     let mut packages: Vec<database::Package> = database.query_package(None)?;
     packages
-        .sort_by(|a, b| (&a.group, &a.name, &a.version).cmp(&((&b.group, &b.name, &b.version))));
+        .sort_by(|a, b| (&a.group, &a.name, &b.version).cmp(&((&b.group, &b.name, &a.version))));
     packages.dedup_by(|a, b| (&a.group, &a.name).eq(&(&b.group, &b.name)));
     // packages.sort_by(|a, b| b.version.cmp(&a.version));
 

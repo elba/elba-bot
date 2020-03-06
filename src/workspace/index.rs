@@ -121,11 +121,12 @@ impl Entries {
             .create(true)
             .write(true)
             .open(&path)?;
-        let content = self
+        let mut content = self
             .0
             .iter()
             .filter_map(|entry| serde_json::to_string(entry).ok())
             .join("\n");
+        content += "\n";
         file.write_all(content.as_bytes())?;
         file.sync_all()?;
         Ok(())

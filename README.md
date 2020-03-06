@@ -13,7 +13,7 @@ cargo build --release
 Run:
 
 ```shell
-target/elba-bot
+target/release/elba-bot
 ```
 
 `elba-bot` reads the `.env` in workdir. Fill the file before starting it off.

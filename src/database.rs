@@ -94,11 +94,11 @@ impl Database {
         ))?;
 
         let rows = from_rows::<Package>(stat.query(params![])?);
-        let mut vec = Vec::new();
-        for row in rows {
-            vec.push(row?);
-        }
-        Ok(vec)
+        let rows: Result<Vec<_>> = rows
+            .into_iter()
+            .map(|row| row.map_err(Into::into))
+            .collect();
+        Ok(rows?)
     }
 
     pub fn insert_package(&self, package: Package) -> Result<()> {

@@ -32,6 +32,8 @@ impl Database {
                     name VARCHAR NOT NULL,
                     version VARCHAR NOT NULL,
                     description VARCHAR,
+                    homepage VARCHAR,
+                    repository VARCHAR,
                     user_id INTERGER NOT NULL,
 
                     UNIQUE(group_name, name, version)
@@ -104,8 +106,8 @@ impl Database {
     pub fn insert_package(&self, package: Package) -> Result<()> {
         self.conn.execute_named(
             "
-                INSERT INTO packages (group_name, name, version, description, user_id)
-                VALUES (:group_name, :name, :version, :description, :user_id)
+                INSERT INTO packages (group_name, name, version, description, homepage, repository, user_id)
+                VALUES (:group_name, :name, :version, :description, :homepage, :repository, :user_id)
             ",
             &to_params_named(package)?.to_slice(),
         )?;
@@ -155,5 +157,7 @@ pub struct Package {
     pub name: String,
     pub version: Version,
     pub description: Option<String>,
+    pub homepage: Option<String>,
+    pub repository: Option<String>,
     pub user_id: i64,
 }

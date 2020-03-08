@@ -60,6 +60,7 @@ impl Controller {
 
             // Update index entry and commit the metadata into database, then update readme
             state.step = PublishStep::UpdateIndex;
+            self.update_report(&comment, &state).await?;
             block_in_place(|| workspace.index.update_package(&manifest, &location))?;
             self.commit_publish(&manifest, &comment.user).await?;
             let package_list = render_readme_package_list(&*self.database.lock().await)?;
@@ -134,6 +135,8 @@ impl Controller {
             name: manifest.package.name.normalized_name().to_string(),
             version: manifest.package.version.clone(),
             description: manifest.package.description.clone(),
+            homepage: manifest.package.homepage.clone(),
+            repository: manifest.package.repository.clone(),
             user_id: user.id,
         })?;
         Ok(())

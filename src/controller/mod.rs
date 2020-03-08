@@ -100,9 +100,8 @@ impl Controller {
                     }
                 };
 
-                info!("Executing command: {:?}", command);
-
                 // Execute command
+                info!("Executing command: {:?}", command);
                 match command {
                     Command::Publish { git, refname } => {
                         let this = self.clone();
@@ -177,12 +176,18 @@ fn render_readme_package_list(database: &Database) -> Result<String> {
 
     for package in packages {
         let user_name = database.query_user(package.user_id)?.unwrap().name;
+        let package_link = if let Some(url) = package.homepage.or(package.repository) {
+            format!(
+                "[`{}/{} {}`]({})",
+                package.group, package.name, package.version, url
+            )
+        } else {
+            format!("`{}/{} {}`", package.group, package.name, package.version)
+        };
         writeln!(
             &mut body,
-            "- `{}/{} {}` *{}* @[{}]({})",
-            package.group,
-            package.name,
-            package.version,
+            "- {} *{}* [@{}]({})",
+            package_link,
             package
                 .description
                 .as_ref()

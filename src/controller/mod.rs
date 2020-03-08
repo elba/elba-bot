@@ -184,15 +184,16 @@ fn render_readme_package_list(database: &Database) -> Result<String> {
         } else {
             format!("`{}/{} {}`", package.group, package.name, package.version)
         };
+        let package_description = if let Some(description) = package.description {
+            format!(" *{}* ", description)
+        } else {
+            format!(" ")
+        };
         writeln!(
             &mut body,
-            "- {} *{}* [@{}]({})",
+            "- {}{}[@{}]({})",
             package_link,
-            package
-                .description
-                .as_ref()
-                .map(|s| s.as_str())
-                .unwrap_or("no description"),
+            package_description,
             &user_name,
             github::url::user_profile(&user_name)
         )

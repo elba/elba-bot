@@ -1,6 +1,9 @@
 use std::fmt::Write;
 
-use elba::package::{manifest::Manifest, Name as PackageName};
+use elba::package::{
+    manifest::{DepReq, Manifest},
+    Name as PackageName,
+};
 use failure::bail;
 use semver::Version;
 use tokio::task::block_in_place;
@@ -92,12 +95,12 @@ impl Controller {
         user: &github::User,
     ) -> Result<()> {
         let database = self.database.lock().await;
-        let packages_in_group =
-            database.query_package(Some(manifest.package.name.normalized_group()))?;
+        let all_packages = database.query_package(None)?;
 
-        // Check whether the user owns the namespace
-        let conflict_package = packages_in_group
+        // Check that the user should own the namespace
+        let conflict_package = all_packages
             .iter()
+            .filter(|package| package.group == manifest.package.name.normalized_group())
             .filter(|package| package.user_id != user.id)
             .next();
         if let Some(conflict_package) = conflict_package {
@@ -108,9 +111,10 @@ impl Controller {
             });
         };
 
-        // Check whether the package exists
-        let exist_same_package = packages_in_group.iter().any(|package| {
-            package.name == manifest.package.name.normalized_name()
+        // Check that the package should not exist yet
+        let exist_same_package = all_packages.iter().any(|package| {
+            package.group == manifest.package.name.normalized_group()
+                && package.name == manifest.package.name.normalized_name()
                 && package.version == manifest.package.version
         });
         if exist_same_package {
@@ -118,6 +122,24 @@ impl Controller {
                 package: manifest.package.name.to_string(),
                 version: manifest.package.version.clone(),
             });
+        }
+
+        // Check that the dependencies are all in index
+        for (name, req) in &manifest.dependencies {
+            match req {
+                DepReq::Registry(_) => (),
+                _ => bail!(Error::NonIndexDependency {
+                    dependency: name.to_string(),
+                    resolution: format!("{:?}", req)
+                }),
+            };
+            if !all_packages.iter().any(|package| {
+                package.group == name.normalized_group() && package.name == name.normalized_name()
+            }) {
+                bail!(Error::DependencyNotFound {
+                    dependency: name.to_string(),
+                })
+            }
         }
 
         Ok(())

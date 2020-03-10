@@ -37,6 +37,12 @@ pub enum Error {
         resolution: String,
     },
 
+    #[fail(
+        display = "Package have dependency `{}` that do not exist in index",
+        dependency
+    )]
+    DependencyNotFound { dependency: String },
+
     #[fail(display = "Repository is bare")]
     RepoIsBare,
 

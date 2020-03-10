@@ -4,7 +4,6 @@ use std::path::Path;
 
 use elba::package::manifest::{DepReq, Manifest};
 use elba::remote::{resolution::DirectRes, RawDep, RawEntry};
-use failure::bail;
 use itertools::Itertools;
 use log::info;
 
@@ -12,7 +11,7 @@ use super::Repo;
 use super::*;
 use crate::config::CONFIG;
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 pub struct Index {
     repo: Repo,
@@ -134,13 +133,11 @@ impl Entries {
 
     pub fn insert(&mut self, manifest: &Manifest, location: &DirectRes) -> Result<()> {
         let mut dependencies = Vec::new();
-        for (name, req) in manifest.dependencies.iter() {
+        for (name, req) in &manifest.dependencies {
             let req = match req {
                 DepReq::Registry(constrain) => constrain.clone(),
-                _ => bail!(Error::NonIndexDependency {
-                    dependency: name.to_string(),
-                    resolution: format!("{:?}", req)
-                }),
+                // this should be checked previously
+                _ => unreachable!(),
             };
             dependencies.push(RawDep {
                 name: name.clone(),
